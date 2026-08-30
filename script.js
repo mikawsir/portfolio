@@ -41,13 +41,23 @@ if (sections.length) {
         }
     };
 
+    let lastScrollY = window.scrollY;
+
     const updateNavState = () => {
+        const currentScrollY = window.scrollY;
+
         if (nav) {
-            nav.classList.toggle('nav-scrolled', window.scrollY > 24);
+            nav.classList.toggle('nav-scrolled', currentScrollY > 24);
+            if (currentScrollY > lastScrollY && currentScrollY > 80) {
+                nav.classList.add('nav-hidden');
+            } else {
+                nav.classList.remove('nav-hidden');
+            }
         }
 
-        if (window.scrollY <= 120) {
+        if (currentScrollY <= 120) {
             clearActiveLinks();
+            lastScrollY = currentScrollY;
             return;
         }
 
@@ -62,6 +72,8 @@ if (sections.length) {
         if (sectionInView) {
             setActiveLink('#' + sectionInView.section.id);
         }
+
+        lastScrollY = currentScrollY;
     };
 
     const closeMenu = () => {
@@ -251,6 +263,18 @@ if (hoverVideos.length) {
     });
 }
 
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+    const submitButton = contactForm.querySelector('button[type="submit"]');
+
+    contactForm.addEventListener('submit', () => {
+        if (submitButton) {
+            submitButton.textContent = 'Sending...';
+            submitButton.disabled = true;
+        }
+    });
+}
+
 // Fullscreen modal video viewer
 const videoTriggerCards = document.querySelectorAll('.video-trigger');
 const videoModal = document.getElementById('videoModal');
@@ -306,10 +330,16 @@ const modalWorkTitle = document.getElementById('modalWorkTitle');
 const imageModalClose = document.querySelector('.image-modal-close');
 
 if (workCards.length && imageModal && modalWorkImage && modalWorkTitle) {
+    const fallbackImage = 'asset/social.jpg';
+
     const openImageModal = (event) => {
         const card = event.currentTarget;
-        const imageSrc = card.dataset.image || '';
+        const imageSrc = card.dataset.image || fallbackImage;
         const title = card.dataset.title || 'Project preview';
+
+        modalWorkImage.onerror = () => {
+            modalWorkImage.src = fallbackImage;
+        };
 
         modalWorkImage.src = imageSrc;
         modalWorkTitle.textContent = title;
